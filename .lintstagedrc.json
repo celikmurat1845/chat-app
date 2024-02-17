@@ -1,10 +1,10 @@
 {
   "server/**/*.js": [
-    "cd server && npm run lintx",
-    "cd server && npm run format"
+    "npm --prefix server run lint",
+    "npm --prefix server run format"
   ],
   "client/**/*.js": [
-    "cd client && npx eslint --fix",
-    "cd client && npx prettier --write"
+    "npm --prefix client run lint",
+    "npm --prefix client run format"
   ]
 }
