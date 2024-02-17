@@ -1,7 +1,7 @@
 {
   "/server/**/*.js": [
-    "cd server && npx eslint --fix",
-    "cd server && npx prettier --write"
+    "cd server && eslint --fix",
+    "cd server && prettier --write"
   ],
   "/client/**/*.js": [
     "cd client && npx eslint --fix",
