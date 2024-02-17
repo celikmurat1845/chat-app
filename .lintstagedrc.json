@@ -4,7 +4,7 @@
     "cd server && prettier --write"
   ],
   "/client/**/*.js": [
-    "cd client && npx eslint --fix",
-    "cd client && npx prettier --write"
+    "cd client && eslint --fix",
+    "cd client && prettier --write"
   ]
 }
