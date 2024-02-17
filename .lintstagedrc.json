@@ -1,0 +1,10 @@
+{
+  "server/**/*.js": [
+    "cd server && npx eslint --fix",
+    "cd server && npx prettier --write"
+  ],
+  "client/**/*.js": [
+    "cd client && npx eslint --fix",
+    "cd client && npx prettier --write"
+  ]
+}
