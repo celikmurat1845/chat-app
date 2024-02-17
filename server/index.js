@@ -5,7 +5,7 @@ const PORT = process.env.PORT || 8000;
 
 const server = createServer(app);
 const murat = "husky deneme";
-console.log("husky deneme");
+console.log("husky deneme")
 
 server.listen(PORT, () => {
     // eslint-disable-next-line no-console
