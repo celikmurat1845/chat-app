@@ -9,7 +9,7 @@
     "install:server": "cd server && npm install",
     "install:client": "cd client && npm install",
     "install": "npm install && npm run install:server && npm run install:client",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "author": "Murat Celik",
   "license": "ISC",
