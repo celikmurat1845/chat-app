@@ -1,8 +1,5 @@
 {
-  "server/**/*.js": [
-    "npm --prefix server run lint",
-    "npm --prefix server run format"
-  ],
+  "server/**/*.js": ["npm run lint", "npm run format"],
   "client/**/*.js": [
     "npm --prefix client run lint",
     "npm --prefix client run format"
