@@ -1,14 +1,27 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import styles from './Login.module.css';
 
-const Login = ({ onLogin }) => {
+function Login() {
     const [username, setUsername] = useState('');
+    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (username) {
-            onLogin(username);
+            try {
+                const response = await axios.post('http://localhost:8000/api/v1/auth/login', {
+                    username
+                });
+
+                console.log(response.data.data.token);
+
+                localStorage.setItem('token', response.data.data.token);
+                navigate('/chat');
+            } catch (error) {
+                console.error('Login error:', error);
+            }
         }
     };
 
@@ -29,10 +42,6 @@ const Login = ({ onLogin }) => {
             </form>
         </div>
     );
-};
-
-Login.propTypes = {
-    onLogin: PropTypes.func.isRequired
-};
+}
 
 export default Login;
