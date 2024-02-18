@@ -10,6 +10,10 @@
     "install:server": "cd server && npm install",
     "install:client": "cd client && npm install",
     "install": "npm run install:server && npm run install:client",
+    "pull:prisma": "cd server && prisma db pull",
+    "migrate:prisma": "cd server && npx prisma migrate dev",
+    "push:prisma": "cd server && npx prisma db push",
+    "deploy": "cd server && npx prisma migrate deploy",
     "prepare": "husky"
   },
   "author": "Murat Celik",

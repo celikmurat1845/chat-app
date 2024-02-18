@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 // const path = require('path');
 const helmet = require('helmet');
+const { API_PREFIX, API_VERSION } = require('./constants');
+const loginRoutes = require('./routes/login.route');
 
 const app = express();
 
@@ -22,9 +24,8 @@ app.use(
 
 // app.use(express.static(path.join(__dirname, "../client/build")));
 
-app.get('/', (_req, res) => {
-    return res.json({ message: 'Welcome!' });
-});
+const URL_PREFIX = `${API_PREFIX}${API_VERSION}`;
+app.use(`${URL_PREFIX}/login`, loginRoutes);
 
 app.all('*', (_req, res) => {
     return res.status(404).end();
