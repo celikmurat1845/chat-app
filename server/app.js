@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { API_PREFIX, API_VERSION } = require('./constants');
 const loginRoutes = require('./routes/login.route');
+const userRoutes = require('./routes/user.route');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use(
 
 const URL_PREFIX = `${API_PREFIX}${API_VERSION}`;
 app.use(`${URL_PREFIX}/login`, loginRoutes);
+app.use(`${URL_PREFIX}/users`, userRoutes);
 
 app.all('*', (_req, res) => {
     return res.status(404).end();
