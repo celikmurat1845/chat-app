@@ -5,10 +5,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "cd server && node index.js",
-    "dev": "cd server && npm run dev & cd client && npm start",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm start\" ",
+    "build": "cd client && npm run build",
     "install:server": "cd server && npm install",
     "install:client": "cd client && npm install",
-    "install": "npm install && npm run install:server && npm run install:client",
+    "install": "npm run install:server && npm run install:client",
     "prepare": "husky"
   },
   "author": "Murat Celik",
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@commitlint/cli": "^18.6.1",
     "@commitlint/config-conventional": "^18.6.2",
+    "concurrently": "^8.2.2",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2"
   }

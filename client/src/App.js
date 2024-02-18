@@ -1,13 +1,18 @@
+// Örneğin, src/App.js
 import React from 'react';
-import Chat from './pages/Chat';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Login from './components/login/Login';
 
 function App() {
     return (
-        <div className='App'>
-            <header className='App-header'>
-                <Chat />
-            </header>
-        </div>
+        <Router>
+            <Routes>
+                <Route
+                    path='/login'
+                    element={<Login onLogin={(username) => console.log(username)} />}
+                />
+            </Routes>
+        </Router>
     );
 }
 
