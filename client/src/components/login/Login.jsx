@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types'; // PropTypes'ı import edin
+import PropTypes from 'prop-types';
 import styles from './Login.module.css';
 
 const Login = ({ onLogin }) => {
@@ -31,7 +31,6 @@ const Login = ({ onLogin }) => {
     );
 };
 
-// Burada onLogin prop'unun tipini ve zorunluluğunu tanımlayın
 Login.propTypes = {
     onLogin: PropTypes.func.isRequired
 };
