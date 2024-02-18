@@ -1,15 +1,27 @@
 const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
+const Joi = require('joi');
 
 const prisma = new PrismaClient();
 const SECRET_KEY = process.env.JWT_SECRET;
 
 exports.loginController = async (req, res) => {
-    const { username } = req.body;
+    const schema = Joi.object({
+        username: Joi.string().alphanum().min(3).max(30).required()
+    });
+
+    const { error, value } = schema.validate(req.body);
+
+    if (error) {
+        const errorMessage = error.details[0].message.replace(/"/g, '');
+        return res.status(400).json({ error: errorMessage });
+    }
+
+    const { username } = value;
     try {
         const user = await prisma.user.upsert({
             where: { username: username },
-            update: {},
+            update: { updatedAt: new Date() },
             create: {
                 username: username
             }
