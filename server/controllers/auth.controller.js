@@ -36,3 +36,20 @@ exports.loginController = async (req, res) => {
         res.status(500).json({ error: 'Failed to process login.' });
     }
 };
+
+exports.verifyToken = async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).send({ message: 'Token is required' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: 'Token is invalid or expired' });
+        }
+
+        // Token geçerliyse, kullanıcı bilgileriyle birlikte başarılı bir yanıt döndür
+        res.send({ message: 'Token is valid', userId: decoded.userId });
+    });
+};
