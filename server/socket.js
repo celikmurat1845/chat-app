@@ -79,10 +79,23 @@ const socketServer = (server) => {
         // });
 
         socket.on('private message', ({ toUserId, message }) => {
-            socket.to(toUserId).emit('receive private message', {
-                fromUserId: socket.id,
-                message: message
-            });
+            // eslint-disable-next-line no-console
+            // console.log(toUserId, message, connectedUsers, socket.id);
+            const receiverSocketId = connectedUsers.find((user) => user.id === toUserId).id;
+            if (receiverSocketId) {
+                io.to(receiverSocketId).emit('receive message', {
+                    fromUserId: socket.id,
+                    message: message.content,
+                    sender: message.sender,
+                    receiver: message.receiver,
+                    fromMe: false
+                    // Buraya, mesajı alan kullanıcının userId'sini ekleyebilirsiniz
+                });
+            }
+            // socket.to(toUserId).emit('receive private message', {
+            //     fromUserId: socket.id,
+            //     message: message
+            // });
         });
 
         socket.on('online', (userId) => {

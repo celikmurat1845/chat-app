@@ -12,9 +12,42 @@ function Chat() {
     const [users, setUsers] = useState([]);
     const [message, setMessage] = useState('');
     const [selectedUser, setSelectedUser] = useState(null);
-    const [allMessages, setAllMessages] = useState([]);
-    const [displayedMessages, setDisplayedMessages] = useState([]);
+    const [messages, setMessages] = useState([]);
     const [socket, setSocket] = useState(null);
+
+    const sendMessage = () => {
+        if (message.trim() && selectedUser && socket) {
+            const msgToSend = {
+                content: message,
+                sender: currentUser.username,
+                receiver: selectedUser.username,
+                fromMe: true
+            };
+            console.log('selectedUser', selectedUser, msgToSend);
+            socket.emit('private message', {
+                toUserId: selectedUser.id,
+                message: msgToSend
+            });
+            // setMessages((prevMessages) => [...prevMessages, msgToSend]);
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                    ...msgToSend,
+                    fromUserId: socket.id
+                }
+            ]);
+            setMessage('');
+        }
+    };
+
+    const selectUser = (user) => {
+        setSelectedUser(user);
+        setMessages([]);
+    };
+
+    if (!isAuthenticated) {
+        return <Navigate to='/login' replace />;
+    }
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -22,8 +55,6 @@ function Chat() {
                 withCredentials: true,
                 query: { token: localStorage.getItem('token') }
             });
-
-            setSocket(newSocket);
 
             newSocket.on('user info', (userInfo) => {
                 setCurrentUser(userInfo);
@@ -34,55 +65,34 @@ function Chat() {
             });
 
             newSocket.on('receive message', (msg) => {
-                const newMessage = {
-                    content: msg.message,
-                    sender: msg.sender,
-                    receiver: currentUser.username,
-                    fromMe: msg.sender === currentUser.username
-                };
-                setAllMessages((prevMessages) => [...prevMessages, newMessage]);
-                if (
-                    selectedUser &&
-                    (msg.sender === selectedUser.username || msg.receiver === selectedUser.username)
-                ) {
-                    setDisplayedMessages((prevMessages) => [...prevMessages, newMessage]);
-                }
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {
+                        content: msg.message,
+                        sender: msg.sender,
+                        receiver: currentUser.username,
+                        fromMe: msg.sender === currentUser.username
+                    }
+                ]);
             });
+
+            setSocket(newSocket);
 
             return () => newSocket.close();
         }
     }, [isAuthenticated, currentUser?.username]);
 
-    const sendMessage = () => {
-        if (message.trim() && selectedUser && socket) {
-            const msgToSend = {
-                content: message,
-                sender: currentUser.username,
-                receiver: selectedUser.username,
-                fromMe: true
-            };
-            socket.emit('private message', {
-                toUserId: selectedUser.id,
-                message: msgToSend
-            });
-            setAllMessages((prevMessages) => [...prevMessages, msgToSend]);
-            setDisplayedMessages((prevMessages) => [...prevMessages, msgToSend]);
-            setMessage('');
-        }
-    };
-
-    const selectUser = (user) => {
-        setSelectedUser(user);
-        const filteredMessages = allMessages.filter(
-            (msg) => msg.sender === user.username || msg.receiver === user.username
-        );
-        setDisplayedMessages(filteredMessages);
-    };
-
-    if (!isAuthenticated) {
-        return <Navigate to='/login' replace />;
-    }
-
+    // const filteredUsers = users.filter((user) => user.username !== currentUser.username);
+    // const seen = new Set();
+    // const unqueUsers = filteredUsers.filter((item) => {
+    //     const key = item.username;
+    //     if (seen.has(key)) {
+    //         return false;
+    //     }
+    //     seen.add(key);
+    //     return true;
+    // });
+    console.log('messages', messages);
     return (
         <div className={styles.chatContainer}>
             <div className={styles.header}>
@@ -110,7 +120,7 @@ function Chat() {
                     ))}
                 </div>
                 <div className={styles.messageArea}>
-                    {displayedMessages.map((msg, index) => (
+                    {messages.map((msg, index) => (
                         <div
                             key={index}
                             className={`${styles.message} ${msg.fromMe ? styles.fromUser : styles.fromOthers}`}
