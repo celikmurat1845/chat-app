@@ -1,4 +1,9 @@
 const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
+const SECRET_KEY = process.env.JWT_SECRET;
 
 const socketServer = (server) => {
     const io = new Server(server, {
@@ -9,11 +14,51 @@ const socketServer = (server) => {
         }
     });
 
+    let connectedUsers = [];
     const roomUsers = {};
 
     io.on('connection', (socket) => {
         // eslint-disable-next-line no-console
         console.log(`new user connected : ${socket.id}`);
+
+        try {
+            const token = socket.handshake.query.token;
+
+            if (!token) {
+                // eslint-disable-next-line no-console
+                console.log('Token sağlanmadı.');
+                return;
+            }
+            const decoded = jwt.verify(token, SECRET_KEY);
+            const userId = decoded.userId;
+
+            prisma.user
+                .findUnique({
+                    where: { id: userId }
+                })
+                .then((user) => {
+                    socket.emit('user info', {
+                        id: user.id,
+                        username: user.username,
+                        online: true
+                    });
+
+                    connectedUsers.push({
+                        id: socket.id,
+                        username: user.username,
+                        online: true
+                    });
+
+                    io.emit('users', connectedUsers);
+                })
+                .catch((error) => {
+                    // eslint-disable-next-line no-console
+                    console.error('Kullanıcı bilgisi çekilemedi:', error);
+                });
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Token doğrulanamadı:', error);
+        }
 
         // socket.on('chat message', (msg) => {
         //     // eslint-disable-next-line no-console
@@ -73,6 +118,10 @@ const socketServer = (server) => {
         socket.on('disconnect', () => {
             // eslint-disable-next-line no-console
             console.log(`user disconnected : ${socket.id}`);
+
+            connectedUsers = connectedUsers.filter((user) => user.id !== socket.id);
+
+            io.emit('users', connectedUsers);
 
             Object.keys(roomUsers).forEach((room) => {
                 roomUsers[room] = (roomUsers[room] || []).filter((id) => id !== socket.id);
