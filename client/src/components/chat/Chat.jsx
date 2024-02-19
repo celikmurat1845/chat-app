@@ -16,6 +16,42 @@ function Chat() {
     const [displayedMessages, setDisplayedMessages] = useState([]);
     const [socket, setSocket] = useState(null);
 
+    const sendMessage = () => {
+        if (message.trim() && selectedUser && socket) {
+            const msgToSend = {
+                content: message,
+                sender: currentUser.username,
+                receiver: selectedUser.username,
+                fromMe: true
+            };
+            socket.emit('private message', {
+                toUserId: selectedUser.id,
+                message: msgToSend
+            });
+            setAllMessages((prevMessages) => [...prevMessages, msgToSend]);
+            setDisplayedMessages((prevMessages) => [...prevMessages, msgToSend]);
+            setMessage('');
+        }
+    };
+
+    const selectUser = (user) => {
+        setSelectedUser(user);
+        setUsers((prevUsers) =>
+            prevUsers.map((u) => ({
+                ...u,
+                newMessage: u.id === user.id ? false : u.newMessage
+            }))
+        );
+        const filteredMessages = allMessages.filter(
+            (msg) => msg.sender === user.username || msg.receiver === user.username
+        );
+        setDisplayedMessages(filteredMessages);
+    };
+
+    if (!isAuthenticated) {
+        return <Navigate to='/login' replace />;
+    }
+
     useEffect(() => {
         if (isAuthenticated) {
             const newSocket = io(SOCKET_SERVER_URL, {
@@ -46,42 +82,19 @@ function Chat() {
                     (msg.sender === selectedUser.username || msg.receiver === selectedUser.username)
                 ) {
                     setDisplayedMessages((prevMessages) => [...prevMessages, newMessage]);
+                } else {
+                    setUsers((prevUsers) =>
+                        prevUsers.map((u) => ({
+                            ...u,
+                            newMessage: u.username === msg.sender ? true : u.newMessage
+                        }))
+                    );
                 }
             });
 
             return () => newSocket.close();
         }
     }, [isAuthenticated, currentUser?.username]);
-
-    const sendMessage = () => {
-        if (message.trim() && selectedUser && socket) {
-            const msgToSend = {
-                content: message,
-                sender: currentUser.username,
-                receiver: selectedUser.username,
-                fromMe: true
-            };
-            socket.emit('private message', {
-                toUserId: selectedUser.id,
-                message: msgToSend
-            });
-            setAllMessages((prevMessages) => [...prevMessages, msgToSend]);
-            setDisplayedMessages((prevMessages) => [...prevMessages, msgToSend]);
-            setMessage('');
-        }
-    };
-
-    const selectUser = (user) => {
-        setSelectedUser(user);
-        const filteredMessages = allMessages.filter(
-            (msg) => msg.sender === user.username || msg.receiver === user.username
-        );
-        setDisplayedMessages(filteredMessages);
-    };
-
-    if (!isAuthenticated) {
-        return <Navigate to='/login' replace />;
-    }
 
     return (
         <div className={styles.chatContainer}>
@@ -103,6 +116,9 @@ function Chat() {
                             onClick={() => selectUser(user)}
                         >
                             <div className={styles.userName}>{user.username}</div>
+                            {user.newMessage && (
+                                <span className={styles.newMessageIndicator}>New</span>
+                            )}
                             <div className={styles.userStatus}>
                                 {user.online ? 'Online' : 'Offline'}
                             </div>

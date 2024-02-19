@@ -52,13 +52,13 @@
     border-radius: 20px;
 }
 
-.fromUser {
+.from-user {
     align-self: flex-end;
     background-color: #dcf8c6;
     margin-left: auto;
 }
 
-.fromOthers {
+.from-others {
     align-self: flex-start;
     background-color: #ebebeb;
     margin-right: auto;
