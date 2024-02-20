@@ -5,7 +5,7 @@ import { useAuth } from '../../context/authContext';
 import styles from './Chat.module.css';
 
 const SOCKET_SERVER_URL = 'http://localhost:8000';
-
+let newSocket;
 function Chat() {
     const { isAuthenticated } = useAuth();
     const [currentUser, setCurrentUser] = useState(null);
@@ -25,7 +25,7 @@ function Chat() {
                 sender: currentUser.username,
                 fromMe: true
             };
-
+            console.log(selectedRoom);
             if (selectedUser) {
                 msgToSend = { ...msgToSend, receiver: selectedUser.username };
                 socket.emit('private message', {
@@ -38,6 +38,7 @@ function Chat() {
                     message: msgToSend
                 });
                 msgToSend = { ...msgToSend, room: selectedRoom.id };
+                console.log(msgToSend);
             }
 
             setAllMessages((prevMessages) => [...prevMessages, msgToSend]);
@@ -68,9 +69,13 @@ function Chat() {
     };
 
     const selectRoom = (room) => {
+        console.log(room);
         setSelectedRoom(room);
         setSelectedUser(null);
-        socket.emit('join room', room.id);
+        const ifMember = room.members.includes(socket.id);
+        if (!ifMember) {
+            socket.emit('join room', room.id);
+        }
         const roomMessages = allMessages.filter((msg) => msg.sender === room.id);
         setDisplayedMessages(roomMessages);
     };
@@ -81,7 +86,7 @@ function Chat() {
 
     useEffect(() => {
         if (isAuthenticated) {
-            const newSocket = io(SOCKET_SERVER_URL, {
+            newSocket = io(SOCKET_SERVER_URL, {
                 withCredentials: true,
                 query: { token: localStorage.getItem('token') }
             });
@@ -96,12 +101,7 @@ function Chat() {
                 setUsers(usersList.filter((user) => user.username !== currentUser?.username));
             });
 
-            newSocket.on('room created', (room) => {
-                setRooms((prevRooms) => [...prevRooms, room]);
-            });
-
             newSocket.on('receive message', (msg) => {
-                console.log(msg);
                 const newMessage = {
                     content: msg.message,
                     sender: msg.sender,
@@ -124,7 +124,17 @@ function Chat() {
                 }
             });
 
+            newSocket.on('room created', (room) => {
+                setRooms((prevRooms) => [...prevRooms, room]);
+            });
+
             // newSocket.on('receive room message', (msg) => {
+            //     console.log(msg, selectedRoom);
+            //     setRooms((prevRooms) =>
+            //         prevRooms.map((room) =>
+            //             room.id === msg.room ? { ...room, newMessage: true } : room
+            //         )
+            //     );
             //     const newMessage = {
             //         content: msg.message.content,
             //         sender: msg.sender,
@@ -132,15 +142,18 @@ function Chat() {
             //         fromMe: msg.sender === socket.id
             //     };
             //     setAllMessages((prevMessages) => [...prevMessages, newMessage]);
+            //     console.log(selectedRoom);
             //     if (selectedRoom && selectedRoom.id === msg.room) {
             //         setDisplayedMessages((prevMessages) => [...prevMessages, newMessage]);
             //     }
             // });
 
             newSocket.on('room joined', (room) => {
-                // Bu kısım odaya katıldığınızda çalışır
-                console.log('Room joined:', room);
+                console.log('Joined room:', room);
                 setSelectedRoom(room);
+                let otherRooms = rooms.filter((r) => r.id !== room.id);
+                otherRooms.push(room);
+                setRooms(otherRooms);
                 const roomMessages = allMessages.filter((msg) => msg.room === room.id);
                 setDisplayedMessages(roomMessages);
             });
@@ -149,27 +162,27 @@ function Chat() {
         }
     }, [isAuthenticated, currentUser?.username]);
 
-    // useEffect(() => {
-    //     newSocket.on('receive room message', (msg) => {
-    //         console.log(msg, selectedRoom);
-    //         setRooms((prevRooms) =>
-    //             prevRooms.map((room) =>
-    //                 room.id === msg.room ? { ...room, newMessage: true } : room
-    //             )
-    //         );
-    //         const newMessage = {
-    //             content: msg.message.content,
-    //             sender: msg.sender,
-    //             room: msg.room,
-    //             fromMe: msg.sender === socket.id
-    //         };
-    //         setAllMessages((prevMessages) => [...prevMessages, newMessage]);
-    //         console.log(selectedRoom);
-    //         if (selectedRoom && selectedRoom.id === msg.room) {
-    //             setDisplayedMessages((prev) => [...prev, newMessage]);
-    //         }
-    //     });
-    // }, selectedRoom);
+    useEffect(() => {
+        newSocket.on('receive room message', (msg) => {
+            console.log(msg, selectedRoom);
+            setRooms((prevRooms) =>
+                prevRooms.map((room) =>
+                    room.id === msg.room ? { ...room, newMessage: true } : room
+                )
+            );
+            const newMessage = {
+                content: msg.message.content,
+                sender: msg.sender,
+                room: msg.room,
+                fromMe: msg.sender === socket.id
+            };
+            setAllMessages((prevMessages) => [...prevMessages, newMessage]);
+            console.log(selectedRoom);
+            if (selectedRoom && selectedRoom.id === msg.room) {
+                setDisplayedMessages((prev) => [...prev, newMessage]);
+            }
+        });
+    }, selectedRoom);
 
     return (
         <div className={styles.chatContainer}>
