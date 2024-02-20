@@ -8,18 +8,21 @@ const SOCKET_SERVER_URL = 'http://localhost:8000';
 
 function Chat() {
     const { isAuthenticated } = useAuth();
+
     const [currentUser, setCurrentUser] = useState(null);
     const [users, setUsers] = useState([]);
     const [message, setMessage] = useState('');
     const [selectedUser, setSelectedUser] = useState(null);
-    const selectedUserRef = useRef(selectedUser);
     const [allMessages, setAllMessages] = useState([]);
     const [displayedMessages, setDisplayedMessages] = useState([]);
     const [socket, setSocket] = useState(null);
     const [rooms, setRooms] = useState([]);
     const [selectedRoom, setSelectedRoom] = useState(null);
+
     const selectedRoomRef = useRef(selectedRoom);
     const myIdRef = useRef('');
+    const selectedUserRef = useRef(selectedUser);
+
 
     const sendMessage = () => {
         if (message.trim() && (selectedUser || selectedRoom) && socket) {
@@ -81,8 +84,16 @@ function Chat() {
         setSelectedUser(null);
         selectedUserRef.current = null;
         socket.emit('join room', room.id);
+
         const roomMessages = allMessages.filter((msg) => msg.sender === room.id);
         setDisplayedMessages(roomMessages);
+    };
+
+    const leaveRoom = () => {
+        if (selectedRoom && socket) {
+            socket.emit('leave room', selectedRoom.id);
+            setSelectedRoom(null);
+        }
     };
 
     if (!isAuthenticated) {
@@ -113,6 +124,7 @@ function Chat() {
             newSocket.on('room created', (room) => {
                 setRooms((prevRooms) => [...prevRooms, room]);
             });
+
             newSocket.on('receive message', (msg) => {
                 const newMessage = {
                     content: msg.message,
@@ -151,12 +163,21 @@ function Chat() {
             });
 
             newSocket.on('room joined', (room) => {
-                // Bu kısım odaya katıldığınızda çalışır
-                console.log('Room joined:', room);
                 setSelectedRoom(room);
                 selectedRoomRef.current = room;
                 const roomMessages = allMessages.filter((msg) => msg.room === room.id);
                 setDisplayedMessages((prev) => [...prev, roomMessages]);
+            });
+
+            newSocket.on('room left', ({ room, memberId }) => {
+                if (memberId === myIdRef.current) {
+                    setRooms((prevRooms) => prevRooms.filter((r) => r.id !== room.id));
+                    setDisplayedMessages([]);
+                } else {
+                    setRooms((prevRooms) =>
+                        prevRooms.map((r) => (r.id === room.id ? room : r))
+                    );
+                }
             });
 
             return () => newSocket.close();
@@ -167,7 +188,7 @@ function Chat() {
         <div className={styles.chatContainer}>
             <div className={styles.header}>
                 <div className={styles.currentUser}>
-                    {currentUser ? `${currentUser.username} - Online` : 'Bekleniyor...'}
+                    {currentUser ? `${currentUser.username} - Online` : 'Pending...'}
                 </div>
                 <div className={styles.roomActions}>
                     <button
@@ -176,7 +197,12 @@ function Chat() {
                     >
                         Create Room
                     </button>
-                    <button className={`${styles.button} ${styles.joinRoom}`}>Join Room</button>
+                    <button
+                        onClick={leaveRoom}
+                        className={`${styles.button} ${styles.joinRoom}`}
+                    >
+                        Leave Room
+                    </button>
                 </div>
             </div>
             <div className={styles.mainContent}>

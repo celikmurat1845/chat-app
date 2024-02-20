@@ -87,8 +87,6 @@ const socketServer = (server) => {
 
         socket.on('join room', (roomId) => {
             const room = rooms.find((r) => r.id === roomId);
-            // eslint-disable-next-line no-console
-            console.log(room);
             if (room) {
                 room.members.push(socket.id);
                 socket.join(roomId);
@@ -106,35 +104,14 @@ const socketServer = (server) => {
             });
         });
 
-        // socket.on('create room', (room) => {
-        //     socket.join(room);
-        //     roomUsers[room] = (roomUsers[room] || []).concat(socket.id);
-        //     // eslint-disable-next-line no-console
-        //     console.log(`Room created: ${room}`);
-        // });
-
-        // socket.on('online', (userId) => {
-        //     // eslint-disable-next-line no-console
-        //     console.log(`${userId} is online.`);
-        // });
-
-        // socket.on('send message', ({ room, message }) => {
-        //     io.to(room).emit('receive message', message);
-        // });
-
-        // socket.on('join room', (room) => {
-        //     socket.join(room);
-        //     roomUsers[room] = (roomUsers[room] || []).concat(socket.id);
-        //     // eslint-disable-next-line no-console
-        //     console.log(`${socket.id} joined room: ${room}`);
-        // });
-
-        // socket.on('leave room', (room) => {
-        //     socket.leave(room);
-        //     roomUsers[room] = (roomUsers[room] || []).filter((id) => id !== socket.id);
-        //     // eslint-disable-next-line no-console
-        //     console.log(`${socket.id} left room: ${room}`);
-        // });
+        socket.on('leave room', (roomId) => {
+            const room = rooms.find((r) => r.id === roomId);
+            if (room) {
+                room.members = room.members.filter((memberId) => memberId !== socket.id);
+                socket.leave(roomId);
+                io.to(roomId).emit('room left', { room, memberId: socket.id });
+            }
+        });
 
         socket.on('disconnect', () => {
             // eslint-disable-next-line no-console
