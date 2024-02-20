@@ -15,6 +15,7 @@ const socketServer = (server) => {
     });
 
     let connectedUsers = [];
+    let rooms = [];
     const roomUsers = {};
 
     io.on('connection', (socket) => {
@@ -26,7 +27,7 @@ const socketServer = (server) => {
 
             if (!token) {
                 // eslint-disable-next-line no-console
-                console.log('Token sağlanmadı.');
+                console.log('Missing Token');
                 return;
             }
             const decoded = jwt.verify(token, SECRET_KEY);
@@ -53,34 +54,14 @@ const socketServer = (server) => {
                 })
                 .catch((error) => {
                     // eslint-disable-next-line no-console
-                    console.error('Kullanıcı bilgisi çekilemedi:', error);
+                    console.error('User not found:', error);
                 });
         } catch (error) {
             // eslint-disable-next-line no-console
-            console.error('Token doğrulanamadı:', error);
+            console.error('Token verification failed:', error);
         }
 
-        // socket.on('chat message', (msg) => {
-        //     // eslint-disable-next-line no-console
-        //     console.log(`Message received : ${msg}`);
-        //     io.emit('chat message', msg);
-        // });
-
-        // socket.on('typing', () => {
-        //     // eslint-disable-next-line no-console
-        //     console.log('typing...');
-        //     socket.broadcast.emit('typing');
-        // });
-
-        // socket.on('stop typing', () => {
-        //     // eslint-disable-next-line no-console
-        //     console.log('stop typing...');
-        //     socket.broadcast.emit('stop typing');
-        // });
-
         socket.on('private message', ({ toUserId, message }) => {
-            // eslint-disable-next-line no-console
-            // console.log(toUserId, message, connectedUsers, socket.id);
             const receiverSocketId = connectedUsers.find((user) => user.id === toUserId).id;
             if (receiverSocketId) {
                 io.to(receiverSocketId).emit('receive message', {
@@ -89,44 +70,67 @@ const socketServer = (server) => {
                     sender: message.sender,
                     receiver: message.receiver,
                     fromMe: false
-                    // Buraya, mesajı alan kullanıcının userId'sini ekleyebilirsiniz
                 });
             }
-            // socket.to(toUserId).emit('receive private message', {
-            //     fromUserId: socket.id,
-            //     message: message
-            // });
         });
 
-        socket.on('online', (userId) => {
+        socket.on('create room', (roomName) => {
+            const room = { id: socket.id, name: roomName, members: [socket.id] };
+            rooms.push(room);
+            socket.join(room.id);
+            io.emit('room created', room);
+        });
+
+        socket.on('join room', (roomId) => {
+            const room = rooms.find((r) => r.id === roomId);
             // eslint-disable-next-line no-console
-            console.log(`${userId} is online.`);
+            console.log(room);
+            if (room) {
+                room.members.push(socket.id);
+                socket.join(roomId);
+                io.to(roomId).emit('room joined', room);
+            }
         });
 
-        socket.on('send message', ({ room, message }) => {
-            io.to(room).emit('receive message', message);
-        });
-
-        socket.on('create room', (room) => {
-            socket.join(room);
-            roomUsers[room] = (roomUsers[room] || []).concat(socket.id);
+        socket.on('send message to room', ({ roomId, message }) => {
             // eslint-disable-next-line no-console
-            console.log(`Room created: ${room}`);
+            console.log(roomId, message);
+            io.to(roomId).emit('receive room message', {
+                sender: socket.id,
+                message,
+                room: roomId
+            });
         });
 
-        socket.on('join room', (room) => {
-            socket.join(room);
-            roomUsers[room] = (roomUsers[room] || []).concat(socket.id);
-            // eslint-disable-next-line no-console
-            console.log(`${socket.id} joined room: ${room}`);
-        });
+        // socket.on('create room', (room) => {
+        //     socket.join(room);
+        //     roomUsers[room] = (roomUsers[room] || []).concat(socket.id);
+        //     // eslint-disable-next-line no-console
+        //     console.log(`Room created: ${room}`);
+        // });
 
-        socket.on('leave room', (room) => {
-            socket.leave(room);
-            roomUsers[room] = (roomUsers[room] || []).filter((id) => id !== socket.id);
-            // eslint-disable-next-line no-console
-            console.log(`${socket.id} left room: ${room}`);
-        });
+        // socket.on('online', (userId) => {
+        //     // eslint-disable-next-line no-console
+        //     console.log(`${userId} is online.`);
+        // });
+
+        // socket.on('send message', ({ room, message }) => {
+        //     io.to(room).emit('receive message', message);
+        // });
+
+        // socket.on('join room', (room) => {
+        //     socket.join(room);
+        //     roomUsers[room] = (roomUsers[room] || []).concat(socket.id);
+        //     // eslint-disable-next-line no-console
+        //     console.log(`${socket.id} joined room: ${room}`);
+        // });
+
+        // socket.on('leave room', (room) => {
+        //     socket.leave(room);
+        //     roomUsers[room] = (roomUsers[room] || []).filter((id) => id !== socket.id);
+        //     // eslint-disable-next-line no-console
+        //     console.log(`${socket.id} left room: ${room}`);
+        // });
 
         socket.on('disconnect', () => {
             // eslint-disable-next-line no-console

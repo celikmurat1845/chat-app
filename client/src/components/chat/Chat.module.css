@@ -167,6 +167,44 @@
     font-weight: bold;
 }
 
+.roomsList {
+    margin-bottom: 20px;
+    padding: 10px 0;
+}
+
+.room {
+    padding: 10px 20px;
+    margin: 5px 0;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: bold;
+}
+
+.room:hover {
+    background-color: #e2e2e2;
+}
+
+.selectedRoom {
+    background-color: #e2b530;
+}
+
+.room::before {
+    content: "#";
+    margin-right: 10px;
+    color: #666;
+}
+
+.newMessageIndicator {
+    color: red;
+    font-size: small;
+    font-weight: bold;
+}
+
 @media (max-width: 768px) {
     .inputArea {
         flex-direction: column;
@@ -191,5 +229,24 @@
     .userStatus {
         font-size: 0.5em;
         color: #397d45;
+    }
+
+    .room {
+        padding: 5px 5px;
+        margin: 5px 0;
+        cursor: pointer;
+        border-radius: 5px;
+        background-color: #f0f0f0;
+        color: #333;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: bold;
+        font-size: 0.7em;
+    }
+
+    .roomsList {
+        margin-bottom: 5px;
+        padding: 5px 0;
     }
 }

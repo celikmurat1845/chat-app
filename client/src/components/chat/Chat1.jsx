@@ -15,31 +15,19 @@ function Chat() {
     const [allMessages, setAllMessages] = useState([]);
     const [displayedMessages, setDisplayedMessages] = useState([]);
     const [socket, setSocket] = useState(null);
-    const [rooms, setRooms] = useState([]);
-    const [selectedRoom, setSelectedRoom] = useState(null);
 
     const sendMessage = () => {
-        if (message.trim() && (selectedUser || selectedRoom) && socket) {
-            let msgToSend = {
+        if (message.trim() && selectedUser && socket) {
+            const msgToSend = {
                 content: message,
                 sender: currentUser.username,
+                receiver: selectedUser.username,
                 fromMe: true
             };
-
-            if (selectedUser) {
-                msgToSend = { ...msgToSend, receiver: selectedUser.username };
-                socket.emit('private message', {
-                    toUserId: selectedUser.id,
-                    message: msgToSend
-                });
-            } else if (selectedRoom) {
-                socket.emit('send message to room', {
-                    roomId: selectedRoom.id,
-                    message: msgToSend
-                });
-                msgToSend = { ...msgToSend, room: selectedRoom.id };
-            }
-
+            socket.emit('private message', {
+                toUserId: selectedUser.id,
+                message: msgToSend
+            });
             setAllMessages((prevMessages) => [...prevMessages, msgToSend]);
             setDisplayedMessages((prevMessages) => [...prevMessages, msgToSend]);
             setMessage('');
@@ -58,21 +46,6 @@ function Chat() {
             (msg) => msg.sender === user.username || msg.receiver === user.username
         );
         setDisplayedMessages(filteredMessages);
-    };
-
-    const createRoom = () => {
-        const roomName = prompt('Please enter room name:');
-        if (roomName && socket) {
-            socket.emit('create room', roomName);
-        }
-    };
-
-    const selectRoom = (room) => {
-        setSelectedRoom(room);
-        setSelectedUser(null);
-        socket.emit('join room', room.id);
-        const roomMessages = allMessages.filter((msg) => msg.sender === room.id);
-        setDisplayedMessages(roomMessages);
     };
 
     if (!isAuthenticated) {
@@ -119,32 +92,6 @@ function Chat() {
                 }
             });
 
-            newSocket.on('room created', (room) => {
-                setRooms((prevRooms) => [...prevRooms, room]);
-            });
-
-            newSocket.on('receive room message', (msg) => {
-                console.log(msg);
-                const newMessage = {
-                    content: msg.message.content,
-                    sender: msg.sender,
-                    room: msg.room,
-                    fromMe: msg.sender === socket.id
-                };
-                setAllMessages((prevMessages) => [...prevMessages, newMessage]);
-                console.log(selectedRoom);
-                if (selectedRoom && selectedRoom.id === msg.room) {
-                    setDisplayedMessages((prevMessages) => [...prevMessages, newMessage]);
-                }
-            });
-
-            newSocket.on('room joined', (room) => {
-                console.log('Joined room:', room);
-                setSelectedRoom(room);
-                const roomMessages = allMessages.filter((msg) => msg.room === room.id);
-                setDisplayedMessages(roomMessages);
-            });
-
             return () => newSocket.close();
         }
     }, [isAuthenticated, currentUser?.username]);
@@ -156,28 +103,12 @@ function Chat() {
                     {currentUser ? `${currentUser.username} - Online` : 'Bekleniyor...'}
                 </div>
                 <div className={styles.roomActions}>
-                    <button
-                        onClick={createRoom}
-                        className={`${styles.button} ${styles.createRoom}`}
-                    >
-                        Create Room
-                    </button>
+                    <button className={`${styles.button} ${styles.createRoom}`}>Create Room</button>
                     <button className={`${styles.button} ${styles.joinRoom}`}>Join Room</button>
                 </div>
             </div>
             <div className={styles.mainContent}>
                 <div className={styles.userList}>
-                    <div className={styles.roomsList}>
-                        {rooms.map((room) => (
-                            <div
-                                key={room.id}
-                                className={`${styles.room} ${selectedRoom && selectedRoom.id === room.id ? styles.selectedRoom : ''}`}
-                                onClick={() => selectRoom(room)}
-                            >
-                                room - {room.name}
-                            </div>
-                        ))}
-                    </div>
                     {users.map((user) => (
                         <div
                             key={user.id}
