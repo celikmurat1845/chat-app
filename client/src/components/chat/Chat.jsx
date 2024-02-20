@@ -169,15 +169,17 @@ function Chat() {
                 setDisplayedMessages((prev) => [...prev, roomMessages]);
             });
 
-            newSocket.on('room left', ({ room, memberId }) => {
-                if (memberId === myIdRef.current) {
-                    setRooms((prevRooms) => prevRooms.filter((r) => r.id !== room.id));
-                    setDisplayedMessages([]);
-                } else {
-                    setRooms((prevRooms) =>
-                        prevRooms.map((r) => (r.id === room.id ? room : r))
-                    );
+            newSocket.on('user left room', ({ room, username }) => {
+                if (username !== currentUser?.username) {
+                    alert(`${username} left the room ${room.name}`);
                 }
+            });
+
+            newSocket.on('you left room', ({ room }) => {
+                alert(`You left the room ${room.name}`);
+                setSelectedRoom(null);
+                setDisplayedMessages([]);
+                // setRooms((prevRooms) => prevRooms.filter((r) => r.id !== room.id));
             });
 
             return () => newSocket.close();

@@ -95,8 +95,6 @@ const socketServer = (server) => {
         });
 
         socket.on('send message to room', ({ roomId, message }) => {
-            // eslint-disable-next-line no-console
-            console.log(roomId, message);
             io.to(roomId).emit('receive room message', {
                 sender: socket.id,
                 message,
@@ -104,12 +102,29 @@ const socketServer = (server) => {
             });
         });
 
+        // socket.on('leave room', (roomId) => {
+        //     const room = rooms.find((r) => r.id === roomId);
+        //     if (room) {
+        //         room.members = room.members.filter((memberId) => memberId !== socket.id);
+        //         socket.leave(roomId);
+        //         io.to(roomId).emit('room left', { room, memberId: socket.id });
+        //     }
+        // });
+
         socket.on('leave room', (roomId) => {
             const room = rooms.find((r) => r.id === roomId);
             if (room) {
+                const leftUser = room.members.filter((memberId) => memberId === socket.id);
                 room.members = room.members.filter((memberId) => memberId !== socket.id);
-                socket.leave(roomId);
-                io.to(roomId).emit('room left', { room, memberId: socket.id });
+
+                socket.leave(leftUser);
+
+                const user = connectedUsers.find((u) => u.id === socket.id);
+                room.members.forEach((memberId) => {
+                    io.to(memberId).emit('user left room', { room, username: user.username });
+                });
+
+                socket.emit('you left room', { room });
             }
         });
 
