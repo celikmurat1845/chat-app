@@ -75,7 +75,11 @@ const socketServer = (server) => {
         });
 
         socket.on('create room', (roomName) => {
-            const room = { id: socket.id, name: roomName, members: [socket.id] };
+            const room = {
+                id: 'id' + Math.random().toString(16).slice(2),
+                name: roomName,
+                members: [socket.id]
+            };
             rooms.push(room);
             socket.join(room.id);
             io.emit('room created', room);

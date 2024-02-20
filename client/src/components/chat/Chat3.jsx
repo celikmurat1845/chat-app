@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import { useAuth } from '../../context/authContext';
@@ -12,14 +12,11 @@ function Chat() {
     const [users, setUsers] = useState([]);
     const [message, setMessage] = useState('');
     const [selectedUser, setSelectedUser] = useState(null);
-    const selectedUserRef = useRef(selectedUser);
     const [allMessages, setAllMessages] = useState([]);
     const [displayedMessages, setDisplayedMessages] = useState([]);
     const [socket, setSocket] = useState(null);
     const [rooms, setRooms] = useState([]);
     const [selectedRoom, setSelectedRoom] = useState(null);
-    const selectedRoomRef = useRef(selectedRoom);
-    const myIdRef = useRef('');
 
     const sendMessage = () => {
         if (message.trim() && (selectedUser || selectedRoom) && socket) {
@@ -44,18 +41,13 @@ function Chat() {
             }
 
             setAllMessages((prevMessages) => [...prevMessages, msgToSend]);
-            if (selectedUserRef.current && !selectedUserRef.current.members) {
-                setDisplayedMessages((prevMessages) => [...prevMessages, msgToSend]);
-            }
+            setDisplayedMessages((prevMessages) => [...prevMessages, msgToSend]);
             setMessage('');
         }
     };
 
     const selectUser = (user) => {
         setSelectedUser(user);
-        selectedUserRef.current = user;
-        setSelectedRoom(null);
-        selectedRoomRef.current = null;
         setUsers((prevUsers) =>
             prevUsers.map((u) => ({
                 ...u,
@@ -77,9 +69,7 @@ function Chat() {
 
     const selectRoom = (room) => {
         setSelectedRoom(room);
-        selectedRoomRef.current = room;
         setSelectedUser(null);
-        selectedUserRef.current = null;
         socket.emit('join room', room.id);
         const roomMessages = allMessages.filter((msg) => msg.sender === room.id);
         setDisplayedMessages(roomMessages);
@@ -98,10 +88,6 @@ function Chat() {
 
             setSocket(newSocket);
 
-            newSocket.on('connect', () => {
-                myIdRef.current = newSocket.io.engine.id;
-            });
-
             newSocket.on('user info', (userInfo) => {
                 setCurrentUser(userInfo);
             });
@@ -113,18 +99,19 @@ function Chat() {
             newSocket.on('room created', (room) => {
                 setRooms((prevRooms) => [...prevRooms, room]);
             });
+
             newSocket.on('receive message', (msg) => {
+                console.log(msg);
                 const newMessage = {
                     content: msg.message,
                     sender: msg.sender,
                     receiver: currentUser.username,
-                    fromMe: msg.sender === myIdRef.current
+                    fromMe: msg.sender === currentUser.username
                 };
                 setAllMessages((prevMessages) => [...prevMessages, newMessage]);
                 if (
-                    selectedUserRef.current &&
-                    (msg.sender === selectedUserRef.current.username ||
-                        msg.receiver === selectedUserRef.current.username)
+                    selectedUser &&
+                    (msg.sender === selectedUser.username || msg.receiver === selectedUser.username)
                 ) {
                     setDisplayedMessages((prevMessages) => [...prevMessages, newMessage]);
                 } else {
@@ -137,31 +124,52 @@ function Chat() {
                 }
             });
 
-            newSocket.on('receive room message', (msg) => {
-                const newMessage = {
-                    content: msg.message.content,
-                    sender: msg.sender,
-                    room: msg.room,
-                    fromMe: msg.message.sender === currentUser.username
-                };
-                setAllMessages((prevMessages) => [...prevMessages, newMessage]);
-                if (selectedRoomRef.current && selectedRoomRef.current.id === msg.room) {
-                    setDisplayedMessages((prevMessages) => [...prevMessages, newMessage]);
-                }
-            });
+            // newSocket.on('receive room message', (msg) => {
+            //     const newMessage = {
+            //         content: msg.message.content,
+            //         sender: msg.sender,
+            //         room: msg.room,
+            //         fromMe: msg.sender === socket.id
+            //     };
+            //     setAllMessages((prevMessages) => [...prevMessages, newMessage]);
+            //     if (selectedRoom && selectedRoom.id === msg.room) {
+            //         setDisplayedMessages((prevMessages) => [...prevMessages, newMessage]);
+            //     }
+            // });
 
             newSocket.on('room joined', (room) => {
                 // Bu kısım odaya katıldığınızda çalışır
                 console.log('Room joined:', room);
                 setSelectedRoom(room);
-                selectedRoomRef.current = room;
                 const roomMessages = allMessages.filter((msg) => msg.room === room.id);
-                setDisplayedMessages((prev) => [...prev, roomMessages]);
+                setDisplayedMessages(roomMessages);
             });
 
             return () => newSocket.close();
         }
     }, [isAuthenticated, currentUser?.username]);
+
+    // useEffect(() => {
+    //     newSocket.on('receive room message', (msg) => {
+    //         console.log(msg, selectedRoom);
+    //         setRooms((prevRooms) =>
+    //             prevRooms.map((room) =>
+    //                 room.id === msg.room ? { ...room, newMessage: true } : room
+    //             )
+    //         );
+    //         const newMessage = {
+    //             content: msg.message.content,
+    //             sender: msg.sender,
+    //             room: msg.room,
+    //             fromMe: msg.sender === socket.id
+    //         };
+    //         setAllMessages((prevMessages) => [...prevMessages, newMessage]);
+    //         console.log(selectedRoom);
+    //         if (selectedRoom && selectedRoom.id === msg.room) {
+    //             setDisplayedMessages((prev) => [...prev, newMessage]);
+    //         }
+    //     });
+    // }, selectedRoom);
 
     return (
         <div className={styles.chatContainer}>
