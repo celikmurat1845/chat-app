@@ -16,10 +16,10 @@ To get the application up and running, follow these steps:
 
 3. Synchronize the database with:
 
-   ## `npm run migrate:dev`
+   ## `npm run migrate:prisma`
 
 4. Finally, start the application using:
-   ## `npm run start`
+   ## `npm start`
    or for development purposes:
    ## `npm run dev`
 
@@ -56,3 +56,5 @@ With this application, users can:
 - See which users are online.
 
 Security measures include the use of `npm helmet` and `npm cors` packages to mitigate common web vulnerabilities and Prisma ORM to prevent query injections.
+
+Note: The `.env` file is not included in the `.gitignore` file because it does not contain any sensitive data.
