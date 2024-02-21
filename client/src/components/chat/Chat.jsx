@@ -97,6 +97,13 @@ function Chat() {
         }
     };
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    };
+
     if (!isAuthenticated) {
         return <Navigate to='/login' replace />;
     }
@@ -261,6 +268,7 @@ function Chat() {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     className={styles.messageInput}
+                    onKeyDown={handleKeyDown}
                 />
                 <button onClick={sendMessage} className={styles.sendButton}>
                     Send
