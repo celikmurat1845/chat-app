@@ -4,7 +4,7 @@
   "description": "real-time-chat-application",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cd server && node index.js",
+    "start": "concurrently \"cd server && npm run start\" \"cd client && npm start\" ",
     "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm start\" ",
     "build": "cd client && npm run build",
     "install:server": "cd server && npm install",
