@@ -5,7 +5,6 @@ import { useAuth } from '../../context/authContext';
 import styles from './Chat.module.css';
 import { SOCKET_URL } from '../../config';
 
-
 const SOCKET_SERVER_URL = SOCKET_URL;
 
 function Chat() {
@@ -24,7 +23,6 @@ function Chat() {
     const selectedRoomRef = useRef(selectedRoom);
     const myIdRef = useRef('');
     const selectedUserRef = useRef(selectedUser);
-
 
     const sendMessage = () => {
         if (message.trim() && (selectedUser || selectedRoom) && socket) {
@@ -211,10 +209,7 @@ function Chat() {
                     >
                         Create Room
                     </button>
-                    <button
-                        onClick={leaveRoom}
-                        className={`${styles.button} ${styles.joinRoom}`}
-                    >
+                    <button onClick={leaveRoom} className={`${styles.button} ${styles.joinRoom}`}>
                         Leave Room
                     </button>
                 </div>
@@ -249,18 +244,24 @@ function Chat() {
                     ))}
                 </div>
                 <div className={styles.messageArea}>
-                    {displayedMessages.filter(msg => msg.content).map((msg, index) => (
-                        <div
-                            key={index}
-                            className={`${styles.message} ${msg.fromMe ? styles.fromUser : styles.fromOthers}`}
-                        >
-                            {msg.content}
-                            <div className={styles.messageInfo}>
-                                {selectedUser && <span className={styles.messageSender}>{msg.time}</span>}
-                                {!msg.fromMe && selectedRoom && <span className={styles.messageSender}>{msg.owner}</span>}
+                    {displayedMessages
+                        .filter((msg) => msg.content)
+                        .map((msg, index) => (
+                            <div
+                                key={index}
+                                className={`${styles.message} ${msg.fromMe ? styles.fromUser : styles.fromOthers}`}
+                            >
+                                {msg.content}
+                                <div className={styles.messageInfo}>
+                                    {selectedUser && (
+                                        <span className={styles.messageSender}>{msg.time}</span>
+                                    )}
+                                    {!msg.fromMe && selectedRoom && (
+                                        <span className={styles.messageSender}>{msg.owner}</span>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </div>
             <div className={styles.inputArea}>
