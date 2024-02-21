@@ -19,7 +19,8 @@
     "quotes": [
       "error",
       "single"
-    ]
+    ],
+    "no-undef": "warn"
   },
   "settings": {
         "react": {

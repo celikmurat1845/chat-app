@@ -1,6 +1,7 @@
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
+const CLIENT_URL = require('./config/index');
 
 const prisma = new PrismaClient();
 const SECRET_KEY = process.env.JWT_SECRET;
@@ -8,7 +9,7 @@ const SECRET_KEY = process.env.JWT_SECRET;
 const socketServer = (server) => {
     const io = new Server(server, {
         cors: {
-            origin: 'http://localhost:3000',
+            origin: CLIENT_URL,
             methods: ['GET', 'POST'],
             credentials: true
         }

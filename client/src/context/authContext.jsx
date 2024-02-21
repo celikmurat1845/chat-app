@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import { API_URL } from '../config';
 
 const AuthContext = createContext();
 
@@ -18,7 +19,7 @@ export const AuthProvider = ({ children }) => {
             }
 
             try {
-                await axios.get('http://localhost:8000/api/v1/auth/verify-token', {
+                await axios.get(`${API_URL}/auth/verify-token`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

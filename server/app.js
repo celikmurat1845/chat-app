@@ -14,8 +14,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
     helmet.contentSecurityPolicy({
         directives: {
-            // defaultSrc: ["'self'"],
-            // scriptSrc: ["'self'", "http://localhost:3000"],
             objectSrc: ['none'],
             upgradeInsecureRequests: []
         },

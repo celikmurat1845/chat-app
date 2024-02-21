@@ -3,8 +3,10 @@ import { Navigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import { useAuth } from '../../context/authContext';
 import styles from './Chat.module.css';
+import { SOCKET_URL } from '../../config';
 
-const SOCKET_SERVER_URL = 'http://localhost:8000';
+
+const SOCKET_SERVER_URL = SOCKET_URL;
 
 function Chat() {
     const { isAuthenticated } = useAuth();
