@@ -29,7 +29,8 @@ function Chat() {
             let msgToSend = {
                 content: message,
                 sender: currentUser.username,
-                fromMe: true
+                fromMe: true,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
 
             if (selectedUser) {
@@ -130,7 +131,8 @@ function Chat() {
                     content: msg.message,
                     sender: msg.sender,
                     receiver: currentUser.username,
-                    fromMe: msg.sender === myIdRef.current
+                    fromMe: msg.sender === myIdRef.current,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 };
                 setAllMessages((prevMessages) => [...prevMessages, newMessage]);
                 if (
@@ -154,7 +156,8 @@ function Chat() {
                     content: msg.message.content,
                     sender: msg.sender,
                     room: msg.room,
-                    fromMe: msg.message.sender === currentUser.username
+                    fromMe: msg.message.sender === currentUser.username,
+                    owner: msg.message.sender
                 };
                 setAllMessages((prevMessages) => [...prevMessages, newMessage]);
                 if (selectedRoomRef.current && selectedRoomRef.current.id === msg.room) {
@@ -237,12 +240,16 @@ function Chat() {
                     ))}
                 </div>
                 <div className={styles.messageArea}>
-                    {displayedMessages.map((msg, index) => (
+                    {displayedMessages.filter(msg => msg.content).map((msg, index) => (
                         <div
                             key={index}
                             className={`${styles.message} ${msg.fromMe ? styles.fromUser : styles.fromOthers}`}
                         >
                             {msg.content}
+                            <div className={styles.messageInfo}>
+                                {selectedUser && <span className={styles.messageSender}>{msg.time}</span>}
+                                {!msg.fromMe && selectedRoom && <span className={styles.messageSender}>{msg.owner}</span>}
+                            </div>
                         </div>
                     ))}
                 </div>

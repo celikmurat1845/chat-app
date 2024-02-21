@@ -102,15 +102,6 @@ const socketServer = (server) => {
             });
         });
 
-        // socket.on('leave room', (roomId) => {
-        //     const room = rooms.find((r) => r.id === roomId);
-        //     if (room) {
-        //         room.members = room.members.filter((memberId) => memberId !== socket.id);
-        //         socket.leave(roomId);
-        //         io.to(roomId).emit('room left', { room, memberId: socket.id });
-        //     }
-        // });
-
         socket.on('leave room', (roomId) => {
             const room = rooms.find((r) => r.id === roomId);
             if (room) {
