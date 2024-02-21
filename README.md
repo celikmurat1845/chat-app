@@ -38,7 +38,7 @@ The application is developed as a monolith:
 - **Code Quality**: ESLint and Prettier for linting and formatting
 - **Commit Management**: Husky and lint-staged for maintaining code quality and managing commit messages
 - **Security Measures**: Helmet and CORS packages for basic security enhancements
-- **Protection Against Query Injections**: Utilizing Prisma ORM
+- **Protection Against Query Injections**: Utilizing Prisma ORM and Joi package
 
 For guidance on how to commit messages, refer to [https://github.com/conventional-changelog/commitlint/#what-is-commitlint] (https://github.com/conventional-changelog/commitlint/#what-is-commitlint). Example commit messages include:
 
@@ -55,6 +55,6 @@ With this application, users can:
 - Leave chat rooms they've joined.
 - See which users are online.
 
-Security measures include the use of `npm helmet` and `npm cors` packages to mitigate common web vulnerabilities and Prisma ORM to prevent query injections.
+Security measures include the use of `npm helmet`, `npm cors` and `npm joi` packages to mitigate common web vulnerabilities and Prisma ORM to prevent query injections.
 
 Note: The `.env` file is not included in the `.gitignore` file because it does not contain any sensitive data.
